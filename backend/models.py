@@ -86,6 +86,14 @@ class DeliveryInfo(BaseModel):
     address: str
     instructions: Optional[str] = None
 
+class DeliveryAddress(BaseModel):
+    street: str
+    city: str
+    state: str
+    zip_code: str
+    apartment: Optional[str] = None
+    delivery_instructions: Optional[str] = None
+
 class PickupInfo(BaseModel):
     pickup_time: str
     instructions: Optional[str] = None
