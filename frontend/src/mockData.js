@@ -190,7 +190,8 @@ export const restaurantInfo = {
     ]
   },
   orderingPlatforms: {
-    doordash: 'https://doordash.com',
-    ubereats: 'https://ubereats.com'
+    doordash: 'https://www.doordash.com/store/touba-african-restaurant-philadelphia-33237279/56499358/?event_type=autocomplete&pickup=false',
+    ubereats: 'https://ubereats.com',
+    website: true
   }
 };

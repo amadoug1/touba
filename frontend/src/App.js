@@ -5,7 +5,7 @@ import { CartProvider } from "./context/CartContext";
 import { Header } from "./components/Header";
 import { HeroAnimated } from "./components/HeroAnimated";
 import { AboutAnimated } from "./components/AboutAnimated";
-import { MenuAnimated } from "./components/MenuAnimated";
+import { MenuShowcaseWithCart } from "./components/MenuShowcaseWithCart";
 import { OrderingAnimated } from "./components/OrderingAnimated";
 import { LocationAnimated } from "./components/LocationAnimated";
 import { ContactAnimated } from "./components/ContactAnimated";
@@ -16,7 +16,7 @@ const HomePage = () => (
   <>
     <HeroAnimated />
     <AboutAnimated />
-    <MenuAnimated />
+    <MenuShowcaseWithCart />
     <OrderingAnimated />
     <LocationAnimated />
     <ContactAnimated />
