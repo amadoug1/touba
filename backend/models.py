@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 from enum import Enum
@@ -14,17 +14,23 @@ class OrderStatus(str, Enum):
     CONFIRMED = "confirmed"
     PREPARING = "preparing"
     READY = "ready"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
+    PICKED_UP = "picked_up"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
 class PaymentMethod(str, Enum):
+    STRIPE = "stripe"
     ONLINE = "online"
     PAY_ON_PICKUP = "pay_on_pickup"
+    CASH = "cash"
 
 class PaymentStatus(str, Enum):
     PENDING = "pending"
     PAID = "paid"
     FAILED = "failed"
+    REFUNDED = "refunded"
 
 # Menu Models
 class MenuModifier(BaseModel):
