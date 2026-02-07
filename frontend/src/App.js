@@ -4,10 +4,10 @@ import { Header } from "./components/Header";
 import { HeroAnimated } from "./components/HeroAnimated";
 import { AboutAnimated } from "./components/AboutAnimated";
 import { MenuAnimated } from "./components/MenuAnimated";
-import { OrderingSection } from "./components/OrderingSection";
+import { OrderingAnimated } from "./components/OrderingAnimated";
 import { LocationHours } from "./components/LocationHours";
 import { Contact } from "./components/Contact";
-import { Footer } from "./components/Footer";
+import { FooterAnimated } from "./components/FooterAnimated";
 import { Toaster } from "./components/ui/sonner";
 
 function App() {
@@ -18,11 +18,11 @@ function App() {
         <HeroAnimated />
         <AboutAnimated />
         <MenuAnimated />
-        <OrderingSection />
+        <OrderingAnimated />
         <LocationHours />
         <Contact />
       </main>
-      <Footer />
+      <FooterAnimated />
       <Toaster />
     </div>
   );
