@@ -45,12 +45,15 @@ export const Header = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex items-center"
+            className="flex items-center cursor-pointer"
+            onClick={() => scrollToSection('home')}
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-wider" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-              TOUBA
-            </h1>
-            <div className="ml-2 w-1 h-10 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_touba-cuisine/artifacts/r5bc54hg_Screenshot%202026-02-07%20at%204.01.32%E2%80%AFAM.png"
+              alt="Touba African Restaurant"
+              className="h-12 md:h-16 w-auto"
+            />
+            <div className="ml-3 w-1 h-12 md:h-16 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
           </motion.div>
 
           {/* Desktop Navigation */}
