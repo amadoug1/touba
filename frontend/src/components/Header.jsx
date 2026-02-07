@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
-import { Phone, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Phone, Menu, X, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { restaurantInfo } from '../mockData';
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { scrollY } = useScroll();
+  
+  const headerBackground = useTransform(
+    scrollY,
+    [0, 100],
+    ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.95)']
+  );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -15,121 +32,112 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
+    <motion.header
+      style={{ backgroundColor: headerBackground }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'shadow-lg backdrop-blur-md' : ''
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <div className="flex items-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-black" style={{ fontFamily: "'Crimson Text', serif" }}>
-              Touba
+          {/* Logo with Animation */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-wider" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+              TOUBA
             </h1>
-          </div>
+            <div className="ml-2 w-1 h-10 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
+          </motion.div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <button
-              onClick={() => scrollToSection('home')}
-              className="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => scrollToSection('about')}
-              className="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              About
-            </button>
-            <button
-              onClick={() => scrollToSection('menu')}
-              className="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Menu
-            </button>
-            <button
-              onClick={() => scrollToSection('order')}
-              className="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Order Online
-            </button>
-            <button
-              onClick={() => scrollToSection('contact')}
-              className="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Contact
-            </button>
-          </nav>
+          <motion.nav
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="hidden md:flex items-center space-x-8"
+          >
+            {['Home', 'About', 'Menu', 'Order', 'Contact'].map((item, index) => (
+              <motion.button
+                key={item}
+                onClick={() => scrollToSection(item.toLowerCase())}
+                className="text-white hover:text-red-600 transition-colors font-semibold text-sm tracking-wide relative group"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                {item}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 transition-all duration-300 group-hover:w-full"></span>
+              </motion.button>
+            ))}
+          </motion.nav>
 
-          {/* Phone Number & Order Button */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Phone & Order Button */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="hidden lg:flex items-center space-x-4"
+          >
             <a
               href={`tel:${restaurantInfo.phone}`}
-              className="flex items-center text-black hover:text-gray-700 transition-colors"
+              className="flex items-center text-white hover:text-yellow-400 transition-colors"
             >
               <Phone className="w-4 h-4 mr-2" />
-              <span className="font-semibold">{restaurantInfo.phone}</span>
+              <span className="font-semibold text-sm">{restaurantInfo.phone}</span>
             </a>
             <Button
               onClick={() => scrollToSection('order')}
-              className="bg-black hover:bg-gray-800 text-white font-semibold px-6 py-2 transition-all duration-200"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.5)]"
             >
-              Order Now
+              ORDER NOW
             </Button>
-          </div>
+          </motion.div>
 
           {/* Mobile Menu Button */}
-          <button
+          <motion.button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-black"
+            className="md:hidden p-2 text-white"
+            whileTap={{ scale: 0.9 }}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          </motion.button>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden py-4 border-t border-gray-800"
+          >
             <nav className="flex flex-col space-y-4">
-              <button
-                onClick={() => scrollToSection('home')}
-                className="text-left text-gray-700 hover:text-black transition-colors font-medium py-2"
-              >
-                Home
-              </button>
-              <button
-                onClick={() => scrollToSection('about')}
-                className="text-left text-gray-700 hover:text-black transition-colors font-medium py-2"
-              >
-                About
-              </button>
-              <button
-                onClick={() => scrollToSection('menu')}
-                className="text-left text-gray-700 hover:text-black transition-colors font-medium py-2"
-              >
-                Menu
-              </button>
-              <button
-                onClick={() => scrollToSection('order')}
-                className="text-left text-gray-700 hover:text-black transition-colors font-medium py-2"
-              >
-                Order Online
-              </button>
-              <button
-                onClick={() => scrollToSection('contact')}
-                className="text-left text-gray-700 hover:text-black transition-colors font-medium py-2"
-              >
-                Contact
-              </button>
+              {['Home', 'About', 'Menu', 'Order', 'Contact'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item.toLowerCase())}
+                  className="text-left text-white hover:text-red-600 transition-colors font-semibold py-2"
+                >
+                  {item}
+                </button>
+              ))}
               <a
                 href={`tel:${restaurantInfo.phone}`}
-                className="flex items-center text-black font-semibold py-2"
+                className="flex items-center text-white font-semibold py-2"
               >
                 <Phone className="w-4 h-4 mr-2" />
                 {restaurantInfo.phone}
               </a>
             </nav>
-          </div>
+          </motion.div>
         )}
       </div>
-    </header>
+    </motion.header>
   );
 };
