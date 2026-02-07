@@ -150,7 +150,27 @@ class PaymentTransaction(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Restaurant Settings
+class BusinessHours(BaseModel):
+    day: str  # monday, tuesday, etc.
+    open_time: str  # "09:00"
+    close_time: str  # "22:00"
+    is_closed: bool = False
+
 class RestaurantSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    
+    # Basic info
+    restaurant_name: str = "Taste of Benin"
+    phone: str = "+1-555-0123"
+    email: str = "orders@tasteofbenin.com"
+    
+    # Address
+    address: str = "123 Main Street"
+    city: str = "New York"
+    state: str = "NY"
+    zip_code: str = "10001"
+    
+    # Operations
     accepting_orders: bool = True
     closure_message: Optional[str] = None
     estimated_prep_time: int = 30  # minutes
@@ -159,3 +179,35 @@ class RestaurantSettings(BaseModel):
     min_delivery_amount: float = 15.0
     delivery_fee: float = 5.0
     tax_rate: float = 0.08  # 8%
+    
+    # Additional settings
+    average_prep_time: int = 25  # minutes
+    delivery_radius: float = 5.0  # miles
+    minimum_delivery_amount: float = 15.00
+    
+    # Business hours
+    business_hours: List[BusinessHours] = Field(default_factory=lambda: [
+        BusinessHours(day="monday", open_time="11:00", close_time="22:00"),
+        BusinessHours(day="tuesday", open_time="11:00", close_time="22:00"),
+        BusinessHours(day="wednesday", open_time="11:00", close_time="22:00"),
+        BusinessHours(day="thursday", open_time="11:00", close_time="22:00"),
+        BusinessHours(day="friday", open_time="11:00", close_time="23:00"),
+        BusinessHours(day="saturday", open_time="11:00", close_time="23:00"),
+        BusinessHours(day="sunday", open_time="12:00", close_time="21:00"),
+    ])
+    
+    # Notifications
+    notification_email: str = "orders@tasteofbenin.com"
+    notification_phone: Optional[str] = None
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Legacy Models (for existing endpoints)
+class StatusCheck(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_name: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class StatusCheckCreate(BaseModel):
+    client_name: str
