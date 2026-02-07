@@ -140,11 +140,12 @@ class Order(BaseModel):
 class PaymentTransaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     order_id: str
-    session_id: str
+    session_id: Optional[str] = None
     amount: float
     currency: str = "usd"
     payment_status: PaymentStatus = PaymentStatus.PENDING
-    metadata: Dict = {}
+    payment_method: PaymentMethod = PaymentMethod.STRIPE
+    metadata: Dict[str, Any] = {}
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
