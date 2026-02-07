@@ -54,16 +54,16 @@ export const HeroAnimated = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-80"></div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 md:py-24">
-        <div className="grid md:grid-cols-12 gap-16 lg:gap-24 items-center">
-          {/* Left Content */}
-          <div className="md:col-span-7 space-y-10 lg:space-y-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-20 md:py-32">
+        <div className="max-w-5xl mx-auto">
+          {/* Center-aligned Content */}
+          <div className="text-center space-y-12 lg:space-y-16">
             {/* Flag Accent Line */}
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: '120px' }}
+              animate={{ width: '140px' }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="h-1.5 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600"
+              className="h-2 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 mx-auto"
             ></motion.div>
 
             {/* Main Headline */}
@@ -71,11 +71,11 @@ export const HeroAnimated = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white"
-              style={{ fontFamily: 'Bebas Neue, sans-serif', lineHeight: '1.1', letterSpacing: '0.02em' }}
+              className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white"
+              style={{ fontFamily: 'Bebas Neue, sans-serif', lineHeight: '1.05', letterSpacing: '0.02em' }}
             >
-              <span className="block mb-3">AUTHENTIC</span>
-              <span className="block text-red-600 mb-3">SENEGALESE</span>
+              <span className="block mb-4">AUTHENTIC</span>
+              <span className="block text-red-600 mb-4">SENEGALESE</span>
               <span className="block">FLAVORS</span>
             </motion.h1>
 
@@ -84,7 +84,7 @@ export const HeroAnimated = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
-              className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light max-w-xl"
+              className="text-2xl md:text-3xl text-gray-300 leading-relaxed font-light max-w-3xl mx-auto"
             >
               Bold African Taste. Made Fresh Daily in Philadelphia.
             </motion.p>
@@ -94,11 +94,11 @@ export const HeroAnimated = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.9 }}
-              className="flex flex-col sm:flex-row gap-5 pt-4"
+              className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-6"
             >
               <Button
                 onClick={() => scrollToSection('order')}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold px-12 py-7 text-lg transition-all duration-300 hover:shadow-[0_0_30px_rgba(227,30,36,0.6)] hover:scale-105"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-14 py-8 text-xl transition-all duration-300 hover:shadow-[0_0_30px_rgba(227,30,36,0.6)] hover:scale-105"
                 style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
               >
                 ORDER ONLINE
@@ -107,7 +107,7 @@ export const HeroAnimated = () => {
               <Button
                 onClick={() => scrollToSection('menu')}
                 variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-black font-bold px-12 py-7 text-lg transition-all duration-300"
+                className="border-2 border-white text-white hover:bg-white hover:text-black font-bold px-14 py-8 text-xl transition-all duration-300"
                 style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
               >
                 VIEW MENU
@@ -115,7 +115,7 @@ export const HeroAnimated = () => {
               <Button
                 asChild
                 variant="outline"
-                className="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold px-10 py-7 text-lg transition-all duration-300"
+                className="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold px-12 py-8 text-xl transition-all duration-300"
               >
                 <a href={`tel:${restaurantInfo.phone}`}>
                   <Phone className="mr-2 w-5 h-5" />
@@ -129,58 +129,22 @@ export const HeroAnimated = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 1.1 }}
-              className="flex flex-wrap gap-10 pt-10 border-t border-gray-700"
+              className="flex flex-wrap justify-center gap-12 pt-12 border-t border-gray-700 max-w-3xl mx-auto"
             >
               <div>
-                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>LOCATION</p>
-                <p className="text-base font-semibold text-white">Philadelphia, PA</p>
+                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>LOCATION</p>
+                <p className="text-lg font-semibold text-white">Philadelphia, PA</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>HOURS</p>
-                <p className="text-base font-semibold text-white">Open Daily</p>
+                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>HOURS</p>
+                <p className="text-lg font-semibold text-white">Open Daily</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>PHONE</p>
-                <p className="text-base font-semibold text-white">{restaurantInfo.phone}</p>
+                <p className="text-xs text-gray-500 font-semibold tracking-wider mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>PHONE</p>
+                <p className="text-lg font-semibold text-white">{restaurantInfo.phone}</p>
               </div>
             </motion.div>
           </div>
-
-          {/* Right - Floating Image Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85, rotateY: -15 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
-            className="relative hidden md:block md:col-span-5"
-          >
-            <div className="relative max-w-lg ml-auto">
-              {/* Main Image */}
-              <div className="relative rounded-lg overflow-hidden shadow-2xl border-4 border-white">
-                <img
-                  src="https://images.unsplash.com/photo-1665332195309-9d75071138f0"
-                  alt="Thieboudienne - Senegalese national dish"
-                  className="w-full h-[500px] lg:h-[550px] object-cover"
-                />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
-                
-                {/* Floating Badge */}
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute top-6 right-6 bg-red-600 text-white px-5 py-2.5 rounded-full shadow-lg"
-                >
-                  <p className="text-sm font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}>
-                    🔥 POPULAR
-                  </p>
-                </motion.div>
-              </div>
-
-              {/* Decorative Elements */}
-              <div className="absolute -bottom-4 -left-4 w-28 h-28 border-4 border-yellow-400 rounded-lg -z-10"></div>
-              <div className="absolute -top-4 -right-4 w-28 h-28 bg-gradient-to-br from-green-600 to-red-600 rounded-lg -z-10 opacity-50"></div>
-            </div>
-          </motion.div>
         </div>
       </div>
 

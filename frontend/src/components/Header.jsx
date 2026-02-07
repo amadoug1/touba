@@ -51,9 +51,10 @@ export const Header = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_touba-cuisine/artifacts/r5bc54hg_Screenshot%202026-02-07%20at%204.01.32%E2%80%AFAM.png"
               alt="Touba African Restaurant"
-              className="h-12 md:h-16 w-auto"
+              className="h-14 md:h-20 w-auto object-contain"
+              loading="eager"
             />
-            <div className="ml-3 w-1 h-12 md:h-16 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
+            <div className="ml-4 w-1 h-14 md:h-20 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
           </motion.div>
 
           {/* Desktop Navigation */}
