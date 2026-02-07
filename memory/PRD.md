@@ -2,194 +2,171 @@
 
 ## Project Overview
 **Product Name**: Touba African Restaurant Website  
-**Type**: Restaurant Website with Online Ordering Integration  
-**Tech Stack**: React (Frontend), FastAPI (Backend - Pending), MongoDB (Database - Pending)  
+**Design**: Bold, Modern, Animated with Black & White + Senegalese Flag Colors  
+**Tech Stack**: React + Framer Motion (Frontend), FastAPI (Backend - Pending), MongoDB (Database - Pending)  
 **Location**: 428 W Olney Ave, Philadelphia, PA 19120  
 **Phone**: (215) 403-7409
 
 ---
 
-## Original Problem Statement
-Build a modern, visually rich, and mobile-friendly restaurant website for Touba African Restaurant, specializing in authentic Senegalese and West African cuisine with the following goals:
-- Showcase food visually to make users hungry
-- Allow customers to easily order food online
-- Improve local SEO and online discoverability
+## Design System (Bold Modern African Luxury)
 
----
+### Color Palette
+- **Primary**: Black (#000000) & White (#ffffff)
+- **Senegalese Flag Accents**: 
+  - Red (#e31e24)
+  - Yellow (#fcd116)
+  - Green (#00853f)
+- **Used For**: Buttons, hover effects, animations, decorative elements
 
-## User Personas
+### Typography
+- **Display (Headings)**: Bebas Neue - Bold, uppercase, modern
+- **Serif (Subheadings)**: Playfair Display - Elegant, premium
+- **Body**: Inter - Clean, readable
 
-### Primary Persona: Local Food Lover
-- **Age**: 25-45
-- **Location**: Philadelphia area
-- **Goals**: Discover authentic African cuisine, order delivery/pickup
-- **Behaviors**: Uses DoorDash/Uber Eats, searches "African food near me"
-
-### Secondary Persona: African Diaspora
-- **Age**: 30-60
-- **Location**: Philadelphia metro
-- **Goals**: Find authentic home-style African cooking
-- **Behaviors**: Values authenticity, reads reviews, calls ahead
-
-### Tertiary Persona: Adventurous Eater
-- **Age**: 20-40
-- **Location**: Philadelphia
-- **Goals**: Try new cuisines, Instagram-worthy food
-- **Behaviors**: Shares food photos, follows food blogs
-
----
-
-## Core Requirements (Static)
-
-### Functional Requirements
-1. **Homepage**: Hero section with strong headline and CTAs
-2. **Menu Showcase**: Visual menu with categories, images, prices, descriptions
-3. **Online Ordering**: Integration with DoorDash & Uber Eats
-4. **Location & Hours**: Google Maps embed, operating schedule
-5. **Contact Form**: Name, email, phone, message fields
-6. **Mobile Responsive**: Works on all device sizes
-7. **SEO Optimized**: Meta tags, semantic HTML, location keywords
-
-### Design Requirements (Lime-Yellow Design Guidelines)
-- Primary Background: #ECEC75 (bright lime-yellow)
-- Card Background: #e6e67c (slightly darker tint)
-- Buttons: Black (#0f172a) with white text
-- Typography: Crimson Text (serif) for headings, sans-serif for body
-- Generous spacing (2-3x more than typical)
-- No dark gradients or purple/pink combinations
-- Clean, modern layout with strong visual hierarchy
-
-### Technical Requirements
-- React with shadcn/ui components
-- FastAPI backend (planned)
-- MongoDB database (planned)
-- Mobile-first responsive design
-- Fast loading times
+### Animation Framework
+- **Framer Motion**: Scroll-triggered animations, hover effects, transitions
+- **Parallax Effects**: Hero section with rotating food carousel
+- **Micro-interactions**: Button ripples, card hovers, smooth page transitions
 
 ---
 
 ## Implementation History
 
-### Phase 1 - Frontend MVP (Completed: Feb 7, 2025)
+### Phase 1 - Bold Redesign (Completed: Feb 7, 2026)
 
-**Files Created:**
-- `/app/frontend/src/mockData.js` - Menu items, restaurant info, hours
-- `/app/frontend/src/components/Header.jsx` - Sticky navigation with mobile menu
-- `/app/frontend/src/components/Hero.jsx` - Hero section with CTAs
-- `/app/frontend/src/components/About.jsx` - Restaurant story and values
-- `/app/frontend/src/components/MenuShowcase.jsx` - Visual menu with categories
-- `/app/frontend/src/components/OrderingSection.jsx` - DoorDash/Uber Eats integration
-- `/app/frontend/src/components/LocationHours.jsx` - Location with Google Maps
-- `/app/frontend/src/components/Contact.jsx` - Contact form and info
-- `/app/frontend/src/components/Footer.jsx` - Footer with links and contact
-- `/app/frontend/src/App.js` - Main app component (updated)
-- `/app/frontend/src/App.css` - Custom styles with design guidelines (updated)
-- `/app/frontend/src/index.css` - Base styles with Google Fonts (updated)
+**New Animated Components Created:**
+- `/app/frontend/src/components/HeroAnimated.jsx` - Full-screen hero with rotating images, parallax, bold typography
+- `/app/frontend/src/components/Header.jsx` - Glassmorphic header with logo, scroll effects, flag accent
+- `/app/frontend/src/components/AboutAnimated.jsx` - Scroll-triggered animations, floating stats card
+- `/app/frontend/src/components/MenuAnimated.jsx` - Interactive menu with category transitions, hover effects
+- `/app/frontend/src/components/OrderingAnimated.jsx` - Bold ordering cards with DoorDash/Uber Eats integration
+- `/app/frontend/src/components/LocationAnimated.jsx` - Location & hours with Google Maps
+- `/app/frontend/src/components/ContactAnimated.jsx` - Contact form with Senegalese flag gradient submit button
+- `/app/frontend/src/components/FooterAnimated.jsx` - Premium footer with flag accent stripe
 
-**Features Implemented:**
-- Complete restaurant website with all core sections
-- 11 high-quality African cuisine images from Unsplash
-- 5 menu categories: Rice Dishes, Meat & Fish, Stews, Sides, Drinks
-- DoorDash & Uber Eats deep linking (placeholder URLs)
-- Google Maps embed for location
-- Contact form with toast notifications (mock submission)
-- Full mobile responsiveness
-- Smooth scroll navigation
-- SEO-friendly structure
+**Design Features Implemented:**
+- Black background with high-contrast white text
+- Red, yellow, green accent colors throughout
+- Bebas Neue typography for bold headers
+- Scroll-triggered fade-in animations
+- Hover effects with scale and shadow
+- Rotating food carousel in hero
+- African pattern overlays (subtle)
+- Flag gradient accent lines
+- Interactive menu category switching
+- Floating badges and decorative elements
+- Mobile-responsive design
 
-**Design Implementation:**
-- Lime-yellow (#ECEC75) primary background
-- Black buttons with hover effects
-- Crimson Text serif headings
-- Generous spacing throughout
-- High-contrast, accessible design
-- Professional food photography
+**Animations & Motion:**
+- Scroll indicators with animated arrows
+- Image progress indicators
+- Button ripple effects
+- Card hover lift effects
+- Smooth page transitions
+- Parallax hero background
+- Staggered content reveals
+- Micro-interactions on all interactive elements
 
-**Status**: ✅ Frontend complete with mock data
-
----
-
-## API Contracts (To Be Implemented)
-
-### GET /api/restaurant/info
-**Response:**
-```json
-{
-  "name": "Touba African Restaurant",
-  "phone": "(215) 403-7409",
-  "address": "428 W Olney Ave",
-  "city": "Philadelphia",
-  "state": "PA",
-  "zipCode": "19120",
-  "hours": { ... }
-}
-```
-
-### GET /api/menu
-**Response:**
-```json
-{
-  "categories": [
-    {
-      "id": "rice-dishes",
-      "name": "Rice Dishes",
-      "items": [ ... ]
-    }
-  ]
-}
-```
-
-### POST /api/contact
-**Request:**
-```json
-{
-  "name": "string",
-  "email": "string",
-  "phone": "string",
-  "message": "string"
-}
-```
-
-### GET /api/ordering-options
-**Response:**
-```json
-{
-  "doordash_url": "string",
-  "ubereats_url": "string"
-}
-```
+**Status**: ✅ Complete modern redesign with animations
 
 ---
 
-## Prioritized Backlog
+## Features Implemented
 
-### P0 - Critical (Next Phase)
+### Homepage
+- ✅ Animated hero with rotating food images
+- ✅ Bold typography ("AUTHENTIC SENEGALESE FLAVORS")
+- ✅ Prominent CTAs (Order Online, View Menu, Call Now)
+- ✅ Quick info cards (Location, Hours, Phone)
+- ✅ Scroll indicator with animation
+
+### About Section
+- ✅ Restaurant story with cultural context
+- ✅ Floating 5-star review badge
+- ✅ Icon-based values list (Heart, Award, Star, Check)
+- ✅ Animated statistics (10+ Years, 50+ Dishes, 100% Fresh)
+- ✅ Scroll-triggered animations
+
+### Menu
+- ✅ Interactive category tabs with active indicator
+- ✅ Animated category transitions
+- ✅ Image-first dish cards
+- ✅ Popular badges and spicy indicators
+- ✅ Hover effects (scale, shadow, border)
+- ✅ 5 categories: Rice Dishes, Meat & Fish, Stews, Sides, Drinks
+
+### Online Ordering
+- ✅ Bold DoorDash card (red theme)
+- ✅ Bold Uber Eats card (black theme)
+- ✅ Phone order option with flag gradient
+- ✅ Hover animations
+- ✅ External link icons
+
+### Location & Hours
+- ✅ Google Maps embed
+- ✅ Operating hours for all days
+- ✅ Flag gradient special notice
+- ✅ Icon-based layout (MapPin, Clock)
+
+### Contact
+- ✅ Contact cards (Phone, Email, Location)
+- ✅ Contact form with validation
+- ✅ Flag gradient submit button
+- ✅ Toast notifications
+- ✅ Colored icons (Red, Yellow, Green)
+
+### Footer
+- ✅ Flag accent top border
+- ✅ Restaurant logo
+- ✅ Quick links, hours, contact
+- ✅ Modern, premium feel
+
+---
+
+## Technical Stack
+
+### Frontend
+- React 19
+- Framer Motion (animations)
+- React Intersection Observer (scroll triggers)
+- Shadcn/UI components
+- Tailwind CSS
+- Lucide React icons
+
+### Fonts
+- Bebas Neue (Google Fonts)
+- Playfair Display (Google Fonts)
+- Inter (Google Fonts)
+
+---
+
+## Next Action Items
+
+### P0 - Critical
 - [ ] Build FastAPI backend with MongoDB
-- [ ] Implement restaurant info API endpoints
 - [ ] Implement menu management API
-- [ ] Implement contact form submission to database
+- [ ] Implement contact form submission endpoint
 - [ ] Add actual DoorDash restaurant URL
 - [ ] Add actual Uber Eats restaurant URL
 - [ ] Connect frontend to backend APIs
-- [ ] Remove mock data, use real data
+- [ ] Remove mock data
 
 ### P1 - High Priority
-- [ ] Add testimonials/reviews section
+- [ ] Add sticky "Order Now" button for mobile
 - [ ] Implement menu item search/filter
-- [ ] Add "Popular Items" highlighted section
-- [ ] Implement image optimization
-- [ ] Add loading states for all sections
-- [ ] Implement form validation with error messages
-- [ ] Add Google Analytics tracking
-- [ ] Implement SEO meta tags
+- [ ] Add SEO meta tags
+- [ ] Optimize images for web (WebP format)
+- [ ] Add Google Analytics
+- [ ] Implement smooth scroll polyfill for older browsers
+- [ ] Add loading states
 
 ### P2 - Nice to Have
+- [ ] Customer testimonials carousel
 - [ ] Instagram feed integration
 - [ ] Online reservation system
 - [ ] Catering inquiry form
 - [ ] Newsletter signup
-- [ ] Loyalty program information
-- [ ] Special offers/promotions section
 - [ ] Blog for recipes and stories
 - [ ] Multi-language support (English/French)
 
@@ -197,55 +174,13 @@ Build a modern, visually rich, and mobile-friendly restaurant website for Touba 
 
 ## Mocked Components
 
-### Mock Data
-- All menu items in `mockData.js`
-- Restaurant hours in `mockData.js`
-- DoorDash URL: placeholder `https://doordash.com`
-- Uber Eats URL: placeholder `https://ubereats.com`
-
-### Mock Functionality
+- All menu data in `mockData.js`
 - Contact form submission (shows toast, doesn't save)
-- Navigation smooth scrolling (frontend only)
-- All interactive elements work as UI elements only
+- DoorDash URL: placeholder
+- Uber Eats URL: placeholder
 
 ---
 
-## Integration Notes
-
-### DoorDash & Uber Eats Integration
-**Current Status**: Deep linking with placeholder URLs  
-**Integration Playbook**: Received from integration_playbook_expert_v2  
-**Approach**: Simple deep linking (no API keys needed initially)  
-**Next Steps**: 
-1. Get actual restaurant URLs from DoorDash Merchant Portal
-2. Get actual restaurant URLs from Uber Eats Manager
-3. Update `mockData.js` with real URLs
-4. Optional: Add embedded widgets for in-site ordering
-
----
-
-## Next Tasks
-1. **Backend Development**: Set up FastAPI with MongoDB
-2. **API Implementation**: Build endpoints for menu, contact, restaurant info
-3. **Frontend Integration**: Connect React to backend APIs
-4. **Testing**: End-to-end testing with testing_agent_v3
-5. **Real Data**: Replace mock data with database queries
-6. **URL Updates**: Add real DoorDash/Uber Eats restaurant links
-7. **SEO Enhancement**: Add meta tags, structured data
-8. **Performance**: Optimize images, lazy loading
-
----
-
-## Success Metrics
-- Website loading time < 3 seconds
-- Mobile responsiveness on all devices
-- Clear CTAs with high visibility
-- Menu images load correctly
-- Contact form submissions working
-- Order buttons direct to correct platforms
-- SEO: Rank for "African restaurant Philadelphia"
-
----
-
-**Last Updated**: February 7, 2025  
-**Current Status**: Frontend MVP Complete - Ready for Backend Development
+**Last Updated**: February 7, 2026  
+**Current Status**: Bold Modern Redesign Complete - Frontend with Animations
+**Next Phase**: Backend Development + Real Data Integration
