@@ -35,7 +35,7 @@ export const HeroAnimated = () => {
         <motion.div
           key={currentImageIndex}
           initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 0.3, scale: 1 }}
+          animate={{ opacity: 0.4, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 1.5 }}
           className="absolute inset-0"
@@ -44,21 +44,14 @@ export const HeroAnimated = () => {
             className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: `url(${heroImages[currentImageIndex]})`,
-              filter: 'brightness(0.4)'
+              filter: 'brightness(0.5)'
             }}
           />
         </motion.div>
       </AnimatePresence>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-85"></div>
-
-      {/* African Pattern Overlay */}
-      <div className="absolute inset-0 opacity-8">
-        <div className="absolute inset-0 bg-repeat" style={{
-          backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(227, 30, 36, 0.3) 20px, rgba(227, 30, 36, 0.3) 40px)`
-        }}></div>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-80"></div>
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 md:py-24">
