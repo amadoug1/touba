@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.css";
 import { Header } from "./components/Header";
-import { Hero } from "./components/Hero";
+import { HeroAnimated } from "./components/HeroAnimated";
 import { About } from "./components/About";
 import { MenuShowcase } from "./components/MenuShowcase";
 import { OrderingSection } from "./components/OrderingSection";
@@ -15,7 +15,7 @@ function App() {
     <div className="App">
       <Header />
       <main>
-        <Hero />
+        <HeroAnimated />
         <About />
         <MenuShowcase />
         <OrderingSection />
