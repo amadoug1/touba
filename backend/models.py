@@ -36,8 +36,17 @@ class PaymentStatus(str, Enum):
 class MenuModifier(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    price: float
+    price: float = 0.0
     available: bool = True
+    description: Optional[str] = None
+
+class MenuModifierGroup(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    required: bool = False
+    max_selections: Optional[int] = None
+    modifiers: List[MenuModifier] = []
 
 class MenuItem(BaseModel):
     id: str
@@ -45,11 +54,18 @@ class MenuItem(BaseModel):
     description: str
     price: float
     image: Optional[str] = None
+    image_url: Optional[str] = None  # Alternative field name
     category: str
     popular: bool = False
     spicy: bool = False
     available: bool = True
     modifiers: List[MenuModifier] = []
+    modifier_groups: List[MenuModifierGroup] = []
+    preparation_time: Optional[int] = None
+    allergens: List[str] = []
+    spice_level: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Cart Models
 class CartModifier(BaseModel):
