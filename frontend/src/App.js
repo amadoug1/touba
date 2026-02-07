@@ -5,8 +5,8 @@ import { HeroAnimated } from "./components/HeroAnimated";
 import { AboutAnimated } from "./components/AboutAnimated";
 import { MenuAnimated } from "./components/MenuAnimated";
 import { OrderingAnimated } from "./components/OrderingAnimated";
-import { LocationHours } from "./components/LocationHours";
-import { Contact } from "./components/Contact";
+import { LocationAnimated } from "./components/LocationAnimated";
+import { ContactAnimated } from "./components/ContactAnimated";
 import { FooterAnimated } from "./components/FooterAnimated";
 import { Toaster } from "./components/ui/sonner";
 
@@ -19,8 +19,8 @@ function App() {
         <AboutAnimated />
         <MenuAnimated />
         <OrderingAnimated />
-        <LocationHours />
-        <Contact />
+        <LocationAnimated />
+        <ContactAnimated />
       </main>
       <FooterAnimated />
       <Toaster />
