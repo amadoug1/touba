@@ -1,21 +1,21 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
+from fastapi.encoders import jsonable_encoder
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 import random
+import asyncio
+import json
+from bson import ObjectId
 
-# Import Stripe integration
-from emergentintegrations.payments.stripe.checkout import (
-    StripeCheckout, 
-    CheckoutSessionResponse, 
-    CheckoutStatusResponse, 
-    CheckoutSessionRequest
-)
+import stripe
+
 
 # Import models
 from models import (
@@ -23,57 +23,100 @@ from models import (
     PaymentTransaction, RestaurantSettings, MenuItem
 )
 
-
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+load_dotenv(ROOT_DIR / ".env")
 
-# Stripe API Key
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+# Stripe API Key (kept for later; safe default for dev)
+STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "sk_test_emergent")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+stripe.api_key = STRIPE_API_KEY
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_url = os.environ.get("MONGO_URL")
+db_name = os.environ.get("DB_NAME")
 
-# Create the main app without a prefix
+if not mongo_url or not db_name:
+    raise RuntimeError("Missing MONGO_URL or DB_NAME in backend/.env")
+
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=5000,  # fail fast if DB is unreachable
+    connectTimeoutMS=5000,
+    socketTimeoutMS=10000,
+)
+
+db = client[db_name]
+
+# Create app + router
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Configure logging
+# Logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
+# -----------------------
+# Helpers
+# -----------------------
 
-# ============= MENU ENDPOINTS =============
+def generate_order_number():
+    """Generate a unique order number"""
+    timestamp = datetime.now().strftime("%Y%m%d")
+    random_num = random.randint(1000, 9999)
+    return f"TOB-{timestamp}-{random_num}"
+
+# -----------------------
+# MENU ENDPOINTS
+# -----------------------
 
 @api_router.get("/menu/full", response_model=List[MenuItem])
 async def get_full_menu():
-    """Get the complete menu with all items and modifiers"""
     try:
-        menu_items = await db.menu_items.find().to_list(1000)
-        return [MenuItem(**item) for item in menu_items]
+        raw_items = await db.menu_items.find().to_list(1000)
+
+        cleaned = []
+        for item in raw_items:
+            if "_id" in item:
+                item["id"] = str(item["_id"])
+                item.pop("_id", None)
+            # Backward compatibility: some records use image_url instead of image.
+            if not item.get("image") and item.get("image_url"):
+                item["image"] = item["image_url"]
+            cleaned.append(MenuItem(**item))
+
+        return cleaned
     except Exception as e:
-        logger.error(f"Error fetching menu: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch menu")
+        logger.exception("Error fetching menu")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@api_router.get("/menu/category/{category}")
+@api_router.get("/menu/category/{category}", response_model=List[MenuItem])
 async def get_menu_by_category(category: str):
     """Get menu items by category"""
     try:
         menu_items = await db.menu_items.find({"category": category}).to_list(1000)
-        return [MenuItem(**item) for item in menu_items]
+
+        cleaned = []
+        for item in menu_items:
+            if "_id" in item:
+                item["id"] = str(item["_id"])
+                item.pop("_id", None)
+            if not item.get("image") and item.get("image_url"):
+                item["image"] = item["image_url"]
+            cleaned.append(MenuItem(**item))
+
+        return cleaned
+
     except Exception as e:
         logger.error(f"Error fetching category menu: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch menu")
 
-
-# ============= RESTAURANT SETTINGS =============
+# -----------------------
+# RESTAURANT SETTINGS
+# -----------------------
 
 @api_router.get("/restaurant/settings", response_model=RestaurantSettings)
 async def get_restaurant_settings():
@@ -81,9 +124,8 @@ async def get_restaurant_settings():
     try:
         settings = await db.restaurant_settings.find_one()
         if not settings:
-            # Create default settings
             default_settings = RestaurantSettings()
-            await db.restaurant_settings.insert_one(default_settings.dict())
+            await db.restaurant_settings.insert_one(jsonable_encoder(default_settings))
             return default_settings
         return RestaurantSettings(**settings)
     except Exception as e:
@@ -97,8 +139,8 @@ async def update_restaurant_settings(settings: RestaurantSettings):
     try:
         await db.restaurant_settings.update_one(
             {},
-            {"$set": settings.dict()},
-            upsert=True
+            {"$set": jsonable_encoder(settings)},
+            upsert=True,
         )
         return {"message": "Settings updated successfully"}
     except Exception as e:
@@ -106,65 +148,53 @@ async def update_restaurant_settings(settings: RestaurantSettings):
         raise HTTPException(status_code=500, detail="Failed to update settings")
 
 
-# ============= ORDER ENDPOINTS =============
-
-def generate_order_number():
-    """Generate a unique order number"""
-    timestamp = datetime.now().strftime("%Y%m%d")
-    random_num = random.randint(1000, 9999)
-    return f"TOB-{timestamp}-{random_num}"
-
+# -----------------------
+# ORDER ENDPOINTS
+# -----------------------
 
 @api_router.post("/orders", response_model=Order)
 async def create_order(order_data: OrderCreate):
-    """Create a new order"""
+    logger.info(f"Incoming order payload: {order_data.dict()}")
     try:
-        # Check restaurant settings
+        logger.info("create_order: received request")
+
         settings = await get_restaurant_settings()
+
         if not settings.accepting_orders:
             raise HTTPException(
                 status_code=503,
-                detail=settings.closure_message or "We are currently not accepting orders"
+                detail=settings.closure_message or "We are currently not accepting orders",
             )
-        
-        # Validate order type
+
         if order_data.order_type == "delivery" and not settings.delivery_enabled:
             raise HTTPException(status_code=400, detail="Delivery is currently unavailable")
-        
+
         if order_data.order_type == "pickup" and not settings.pickup_enabled:
             raise HTTPException(status_code=400, detail="Pickup is currently unavailable")
-        
-        # Create order
+
         order = Order(
             order_number=generate_order_number(),
-            **order_data.dict()
+            **order_data.dict(),
         )
         
-        # Save to database
-        await db.orders.insert_one(order.dict())
-        logger.info(f"Order created: {order.order_number}")
-        
+        logger.info("create_order: inserting order into MongoDB...")
+        result = await asyncio.wait_for(
+            db.orders.insert_one(jsonable_encoder(order)),
+            timeout=10,
+        )
+
+        logger.info("create_order: MongoDB insert completed")
+
+        # attach id so the response model has it
+        order.id = str(result.inserted_id)
+
         return order
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating order: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create order")
-
-
-@api_router.get("/orders/{order_id}", response_model=Order)
-async def get_order(order_id: str):
-    """Get order by ID"""
-    try:
-        order = await db.orders.find_one({"id": order_id})
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        return Order(**order)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching order: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch order")
 
 
 @api_router.get("/orders/number/{order_number}", response_model=Order)
@@ -174,7 +204,13 @@ async def get_order_by_number(order_number: str):
         order = await db.orders.find_one({"order_number": order_number})
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
+
+        # Convert Mongo _id to id for Pydantic
+        order["id"] = str(order["_id"])
+        order.pop("_id", None)
+
         return Order(**order)
+
     except HTTPException:
         raise
     except Exception as e:
@@ -182,195 +218,208 @@ async def get_order_by_number(order_number: str):
         raise HTTPException(status_code=500, detail="Failed to fetch order")
 
 
-# ============= STRIPE PAYMENT ENDPOINTS =============
+# -----------------------
+# STRIPE ENDPOINTS
+# -----------------------
 
-@api_router.post("/payment/checkout", response_model=CheckoutSessionResponse)
-async def create_checkout_session(
-    request: Request,
-    order_id: str,
-    origin_url: str
-):
-    """Create a Stripe checkout session for an order"""
-    try:
-        # Get order
+@api_router.post("/payment/checkout")
+async def create_checkout_session(request: Request):
+    if not STRIPE_API_KEY or STRIPE_API_KEY.startswith("sk_test_emergent"):
+        raise HTTPException(status_code=503, detail="Stripe is not configured yet.")
+
+    payload = await request.json()
+    order_id = payload.get("order_id")
+    origin_url = payload.get("origin_url")
+
+    if not order_id:
+        raise HTTPException(status_code=400, detail="Missing order_id")
+    if not origin_url:
+        raise HTTPException(status_code=400, detail="Missing origin_url")
+
+    order = None
+    if ObjectId.is_valid(order_id):
+        order = await db.orders.find_one({"_id": ObjectId(order_id)})
+    if not order:
         order = await db.orders.find_one({"id": order_id})
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        
-        order_obj = Order(**order)
-        
-        # Check if already paid
-        if order_obj.payment_status == PaymentStatus.PAID:
-            raise HTTPException(status_code=400, detail="Order already paid")
-        
-        # Initialize Stripe
-        host_url = str(request.base_url)
-        webhook_url = f"{host_url}api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        # Create success and cancel URLs
-        success_url = f"{origin_url}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}"
-        cancel_url = f"{origin_url}/checkout?order_id={order_id}"
-        
-        # Create checkout session
-        checkout_request = CheckoutSessionRequest(
-            amount=float(order_obj.total),  # Stripe needs float
-            currency="usd",
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
-                "order_id": order_id,
-                "order_number": order_obj.order_number,
-                "customer_name": order_obj.customer_info.name,
-                "customer_phone": order_obj.customer_info.phone
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    items = order.get("items", [])
+    if not items:
+        raise HTTPException(status_code=400, detail="Order has no items")
+
+    line_items = []
+    for item in items:
+        quantity = int(item.get("quantity", 1) or 1)
+        subtotal = float(item.get("subtotal", 0) or 0)
+        if quantity < 1:
+            quantity = 1
+
+        unit_amount = int(round((subtotal / quantity) * 100))
+        if unit_amount <= 0:
+            unit_amount = int(round(float(item.get("price", 0)) * 100))
+        if unit_amount <= 0:
+            continue
+
+        line_items.append(
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": item.get("name", "Menu Item")},
+                    "unit_amount": unit_amount,
+                },
+                "quantity": quantity,
             }
         )
-        
-        session = await stripe_checkout.create_checkout_session(checkout_request)
-        
-        # Create payment transaction record
-        transaction = PaymentTransaction(
-            order_id=order_id,
-            session_id=session.session_id,
-            amount=float(order_obj.total),
-            currency="usd",
-            payment_status=PaymentStatus.PENDING,
-            metadata=checkout_request.metadata
+
+    tax = float(order.get("tax", 0) or 0)
+    delivery_fee = float(order.get("delivery_fee", 0) or 0)
+    if tax > 0:
+        line_items.append(
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": "Tax"},
+                    "unit_amount": int(round(tax * 100)),
+                },
+                "quantity": 1,
+            }
         )
-        await db.payment_transactions.insert_one(transaction.dict())
-        
-        # Update order with session ID
-        await db.orders.update_one(
-            {"id": order_id},
-            {"$set": {"stripe_session_id": session.session_id}}
+    if delivery_fee > 0:
+        line_items.append(
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": "Delivery Fee"},
+                    "unit_amount": int(round(delivery_fee * 100)),
+                },
+                "quantity": 1,
+            }
         )
-        
-        logger.info(f"Checkout session created for order {order_obj.order_number}")
-        return session
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error creating checkout session: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+    if not line_items:
+        raise HTTPException(status_code=400, detail="Order total is invalid")
+
+    success_url = f"{origin_url}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin_url}/?checkout=cancelled"
+
+    customer_email = (order.get("customer_info") or {}).get("email")
+    session = stripe.checkout.Session.create(
+        mode="payment",
+        line_items=line_items,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        customer_email=customer_email or None,
+        payment_method_types=["card"],
+        billing_address_collection="auto",
+        metadata={
+            "order_id": str(order.get("_id")),
+            "order_number": order.get("order_number", ""),
+        },
+    )
+
+    await db.orders.update_one(
+        {"_id": order["_id"]},
+        {
+            "$set": {
+                "payment_method": PaymentMethod.STRIPE.value,
+                "stripe_session_id": session.id,
+                "payment_status": PaymentStatus.PENDING.value,
+                "updated_at": datetime.utcnow(),
+            }
+        },
+    )
+
+    return {"checkout_url": session.url, "session_id": session.id}
 
 
-@api_router.get("/payment/status/{session_id}", response_model=CheckoutStatusResponse)
+@api_router.get("/payment/status/{session_id}")
 async def get_payment_status(session_id: str, request: Request):
-    """Get payment status for a checkout session"""
-    try:
-        # Initialize Stripe
-        host_url = str(request.base_url)
-        webhook_url = f"{host_url}api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        # Get checkout status
-        status = await stripe_checkout.get_checkout_status(session_id)
-        
-        # Update payment transaction
-        transaction = await db.payment_transactions.find_one({"session_id": session_id})
-        if transaction:
-            # Check if already processed
-            if transaction.get("payment_status") != "paid" and status.payment_status == "paid":
-                # Update transaction
-                await db.payment_transactions.update_one(
-                    {"session_id": session_id},
-                    {
-                        "$set": {
-                            "payment_status": PaymentStatus.PAID,
-                            "updated_at": datetime.utcnow()
-                        }
-                    }
-                )
-                
-                # Update order
-                order_id = transaction.get("order_id")
-                if order_id:
-                    await db.orders.update_one(
-                        {"id": order_id},
-                        {
-                            "$set": {
-                                "payment_status": PaymentStatus.PAID,
-                                "order_status": OrderStatus.CONFIRMED,
-                                "updated_at": datetime.utcnow()
-                            }
-                        }
-                    )
-                    logger.info(f"Payment confirmed for order {order_id}")
-                    
-                    # TODO: Send email notification to restaurant
-        
-        return status
-        
-    except Exception as e:
-        logger.error(f"Error getting payment status: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get payment status")
+    if not STRIPE_API_KEY or STRIPE_API_KEY.startswith("sk_test_emergent"):
+        raise HTTPException(status_code=503, detail="Stripe is not configured yet.")
+
+    session = stripe.checkout.Session.retrieve(session_id)
+    stripe_payment_status = session.get("payment_status", "unpaid")
+    paid = stripe_payment_status == "paid"
+
+    order_id = (session.get("metadata") or {}).get("order_id")
+    order_number = (session.get("metadata") or {}).get("order_number")
+    if order_id and ObjectId.is_valid(order_id):
+        await db.orders.update_one(
+            {"_id": ObjectId(order_id)},
+            {
+                "$set": {
+                    "payment_status": PaymentStatus.PAID.value if paid else PaymentStatus.PENDING.value,
+                    "order_status": OrderStatus.CONFIRMED.value if paid else OrderStatus.PENDING.value,
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
+
+    return {
+        "session_id": session_id,
+        "payment_status": stripe_payment_status,
+        "paid": paid,
+        "order_number": order_number,
+    }
 
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhooks"""
+    if not STRIPE_API_KEY or STRIPE_API_KEY.startswith("sk_test_emergent"):
+        raise HTTPException(status_code=503, detail="Stripe is not configured yet.")
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+
     try:
-        body = await request.body()
-        signature = request.headers.get("Stripe-Signature")
-        
-        if not signature:
-            raise HTTPException(status_code=400, detail="Missing stripe signature")
-        
-        # Initialize Stripe
-        host_url = str(request.base_url)
-        webhook_url = f"{host_url}api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        # Handle webhook
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        
-        logger.info(f"Webhook received: {webhook_response.event_type}")
-        
-        # Handle payment success
-        if webhook_response.payment_status == "paid":
-            session_id = webhook_response.session_id
-            
-            # Update transaction and order
-            transaction = await db.payment_transactions.find_one({"session_id": session_id})
-            if transaction and transaction.get("payment_status") != "paid":
-                await db.payment_transactions.update_one(
-                    {"session_id": session_id},
-                    {
-                        "$set": {
-                            "payment_status": PaymentStatus.PAID,
-                            "updated_at": datetime.utcnow()
-                        }
-                    }
-                )
-                
-                order_id = transaction.get("order_id")
-                if order_id:
-                    await db.orders.update_one(
-                        {"id": order_id},
-                        {
-                            "$set": {
-                                "payment_status": PaymentStatus.PAID,
-                                "order_status": OrderStatus.CONFIRMED,
-                                "updated_at": datetime.utcnow()
-                            }
-                        }
-                    )
-        
-        return {"status": "success"}
-        
+        if STRIPE_WEBHOOK_SECRET:
+            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+        else:
+            event = json.loads(payload.decode("utf-8"))
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Webhook processing failed")
+        logger.error(f"Webhook parse/signature error: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid Stripe webhook payload")
 
+    event_type = event.get("type")
+    data_obj = (event.get("data") or {}).get("object", {})
+    metadata = data_obj.get("metadata") or {}
+    order_id = metadata.get("order_id")
 
-# ============= ORIGINAL ENDPOINTS =============
+    if order_id and ObjectId.is_valid(order_id):
+        if event_type == "checkout.session.completed":
+            await db.orders.update_one(
+                {"_id": ObjectId(order_id)},
+                {
+                    "$set": {
+                        "payment_status": PaymentStatus.PAID.value,
+                        "order_status": OrderStatus.CONFIRMED.value,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+        elif event_type in ("checkout.session.expired", "checkout.session.async_payment_failed"):
+            await db.orders.update_one(
+                {"_id": ObjectId(order_id)},
+                {
+                    "$set": {
+                        "payment_status": PaymentStatus.FAILED.value,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+
+    return {"received": True}
+
+# -----------------------
+# ROOT
+# -----------------------
 
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
 
-# Include the router in the main app
+# Attach router + middleware
 app.include_router(api_router)
 
 app.add_middleware(
@@ -380,6 +429,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compress API responses to reduce payload transfer time over mobile networks.
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=1024,
+    compresslevel=5,
+)
+
+
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    response: Response = await call_next(request)
+    path = request.url.path
+
+    # Cache stable menu/settings responses briefly to lower repeat API latency.
+    if path in ("/api/menu/full", "/api/restaurant/settings") or path.startswith("/api/menu/category/"):
+        response.headers["Cache-Control"] = "public, max-age=120, stale-while-revalidate=300"
+    # Never cache order/payment data.
+    elif path.startswith("/api/orders") or path.startswith("/api/payment") or path.startswith("/api/webhook"):
+        response.headers["Cache-Control"] = "no-store"
+
+    return response
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

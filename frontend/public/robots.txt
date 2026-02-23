@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block non-website API/admin paths if they are ever served from this origin.
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://www.toubaafricanrestaurant.com/sitemap.xml

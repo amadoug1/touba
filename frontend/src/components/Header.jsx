@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Phone, Menu, X, ShoppingCart } from 'lucide-react';
 import { Button } from './ui/button';
 import { restaurantInfo } from '../mockData';
@@ -10,20 +10,35 @@ export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const { getCartCount } = useCart();
-  const { scrollY } = useScroll();
-  
-  const headerBackground = useTransform(
-    scrollY,
-    [0, 100],
-    ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.95)']
-  );
+  const { cartCount } = useCart();
+  const headerRef = useRef(null);
+  const lastOpacityRef = useRef(-1);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      if (ticking) return;
+
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const opacity = Math.min(window.scrollY / 100, 1) * 0.95;
+        if (Math.abs(opacity - lastOpacityRef.current) >= 0.01) {
+          if (headerRef.current) {
+            headerRef.current.style.backgroundColor = `rgba(0, 0, 0, ${opacity.toFixed(3)})`;
+          }
+          lastOpacityRef.current = opacity;
+        }
+
+        const isScrolled = window.scrollY > 50;
+        setScrolled((prev) => (prev === isScrolled ? prev : isScrolled));
+        ticking = false;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -35,18 +50,17 @@ export const Header = () => {
     }
   };
 
-  const cartCount = getCartCount();
-
   return (
     <>
       <motion.header
-        style={{ backgroundColor: headerBackground }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        ref={headerRef}
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-300 ${
           scrolled ? 'shadow-lg backdrop-blur-md' : ''
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
             {/* Logo with Animation */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -58,10 +72,12 @@ export const Header = () => {
               <img 
                 src="https://customer-assets.emergentagent.com/job_touba-cuisine/artifacts/r5bc54hg_Screenshot%202026-02-07%20at%204.01.32%E2%80%AFAM.png"
                 alt="Touba African Restaurant"
-                className="h-14 md:h-20 w-auto object-contain"
+                className="h-12 sm:h-14 md:h-20 w-auto object-contain"
                 loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
-              <div className="ml-4 w-1 h-14 md:h-20 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
+              <div className="ml-2 sm:ml-4 w-0.5 sm:w-1 h-12 sm:h-14 md:h-20 bg-gradient-to-b from-green-600 via-yellow-400 to-red-600"></div>
             </motion.div>
 
             {/* Desktop Navigation */}
@@ -83,7 +99,7 @@ export const Header = () => {
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
                   {item}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 transition-all duration-300 group-hover:w-full"></span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 transition-[width] duration-300 group-hover:w-full"></span>
                 </motion.button>
               ))}
             </motion.nav>
@@ -118,7 +134,7 @@ export const Header = () => {
 
               <Button
                 onClick={() => scrollToSection('order')}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.5)]"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 transition-[transform,box-shadow,background-color] duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.5)]"
               >
                 ORDER NOW
               </Button>

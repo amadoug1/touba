@@ -1,76 +1,133 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Flame, Star, Plus, Minus, X, ShoppingCart } from 'lucide-react';
+import { Flame, Star, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import axios from 'axios';
+import { api } from "../api/axios";
+import Section from './Section';
+import { optimizeImageUrl } from '../lib/utils';
+import { menuCategories } from '../mockData';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const CATEGORIES = [
+  { id: 'rice-dishes', name: 'Rice Dishes' },
+  { id: 'meat-fish', name: 'Meat & Fish' },
+  { id: 'stews', name: 'Traditional Stews' },
+  { id: 'sides', name: 'Sides & Extras' },
+  { id: 'drinks', name: 'Beverages' },
+];
+
+const getItemImage = (item) => item?.image || item?.image_url || item?.imageUrl || "";
+const normalizeCategory = (value = "") =>
+  String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[_\s]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+
 
 export const MenuShowcaseWithCart = () => {
-  const [menuItems, setMenuItems] = useState([]);
+  const fallbackMenuItems = useMemo(
+    () =>
+      menuCategories.flatMap((category) =>
+        (category.items || []).map((item) => ({
+          ...item,
+          category: category.id,
+          modifiers: item.modifiers || [],
+          available: item.available ?? true,
+        }))
+      ),
+    []
+  );
+
+  const [menuItems, setMenuItems] = useState(fallbackMenuItems);
   const [selectedCategory, setSelectedCategory] = useState('rice-dishes');
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedModifiers, setSelectedModifiers] = useState([]);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const { addToCart } = useCart();
-  
+
   const [ref, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.1
+    threshold: 0.1,
   });
 
-  useEffect(() => {
-    fetchMenu();
-  }, []);
-
-  const fetchMenu = async () => {
+  const fetchMenu = useCallback(async (signal) => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/menu/full`);
-      setMenuItems(response.data);
-      setLoading(false);
+      const response = await api.get("/api/menu/full", {
+        signal,
+        timeout: 8000,
+      });
+      const items = Array.isArray(response?.data) ? response.data : [];
+
+      if (items.length > 0) {
+        const normalized = items.map((item) => ({
+          ...item,
+          modifiers: Array.isArray(item.modifiers) ? item.modifiers : [],
+          available: item.available ?? true,
+        }));
+        setMenuItems(normalized);
+      } else {
+        setMenuItems(fallbackMenuItems);
+      }
     } catch (error) {
-      console.error('Error fetching menu:', error);
+      if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") return;
+      console.error("❌ Error fetching menu:", {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        url: error?.config?.url,
+      });
+      setMenuItems((prev) => (prev.length > 0 ? prev : fallbackMenuItems));
+    } finally {
       setLoading(false);
     }
-  };
+  }, [fallbackMenuItems]);
 
-  const categories = [
-    { id: 'rice-dishes', name: 'Rice Dishes' },
-    { id: 'meat-fish', name: 'Meat & Fish' },
-    { id: 'stews', name: 'Traditional Stews' },
-    { id: 'sides', name: 'Sides & Extras' },
-    { id: 'drinks', name: 'Beverages' }
-  ];
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchMenu(controller.signal);
+    return () => controller.abort();
+  }, [fetchMenu]);
 
-  const currentItems = menuItems.filter(item => item.category === selectedCategory);
+  const currentItems = useMemo(() => {
+    const selected = normalizeCategory(selectedCategory);
+    return menuItems.filter((item) => normalizeCategory(item.category) === selected);
+  }, [menuItems, selectedCategory]);
+  const displayedItems = useMemo(() => {
+    if (currentItems.length > 0) return currentItems;
+    return menuItems;
+  }, [currentItems, menuItems]);
+  const featuredItems = useMemo(
+    () => menuItems.filter((item) => item.popular).slice(0, 3),
+    [menuItems]
+  );
 
-  const handleOpenModal = (item) => {
+  const handleOpenModal = useCallback((item) => {
     setSelectedItem(item);
     setSelectedModifiers([]);
     setQuantity(1);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedItem(null);
     setSelectedModifiers([]);
     setQuantity(1);
-  };
+  }, []);
 
   const toggleModifier = (modifier) => {
-    setSelectedModifiers(prev => {
-      const exists = prev.find(m => m.id === modifier.id);
-      if (exists) {
-        return prev.filter(m => m.id !== modifier.id);
-      } else {
-        return [...prev, modifier];
-      }
-    });
+    setSelectedModifiers((prev) =>
+      prev.find((m) => m.id === modifier.id)
+        ? prev.filter((m) => m.id !== modifier.id)
+        : [...prev, modifier]
+    );
   };
 
   const calculateTotal = () => {
@@ -86,44 +143,113 @@ export const MenuShowcaseWithCart = () => {
     }
   };
 
-  const handleQuickAdd = (item) => {
+  const handleQuickAdd = useCallback((item) => {
     addToCart(item, 1, []);
-  };
+  }, [addToCart]);
 
   if (loading) {
     return (
-      <section id="menu" className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-white text-xl">Loading menu...</p>
-        </div>
-      </section>
+      <Section id="menu" className="bg-black" innerClassName="text-center">
+        <p className="text-white text-xl">Loading menu...</p>
+      </Section>
     );
   }
 
   return (
-    <section id="menu" className="py-20 bg-black relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
+    <Section id="menu" className="bg-black relative overflow-hidden" innerClassName="relative z-10">
+      <div ref={ref}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
+          {/* Featured Dishes */}
+{featuredItems.length > 0 && (
+  <div className="mb-14">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 mb-6 text-left sm:text-inherit">
+      <div>
+        <p className="text-sm font-sans font-semibold uppercase tracking-[0.12em] text-gray-400">
+          Featured
+        </p>
+        <h3 className="text-2xl sm:text-3xl md:text-4xl font-display font-semibold text-white tracking-[0.01em]">
+          Today’s Favorites
+        </h3>
+      </div>
+      <button
+        onClick={() => setSelectedCategory('rice-dishes')}
+        className="text-sm font-sans font-semibold uppercase tracking-[0.12em] text-white/80 hover:text-white transition-colors text-left sm:text-right"
+      >
+        View full menu →
+      </button>
+    </div>
+
+    <div className="grid md:grid-cols-3 gap-6">
+      {featuredItems.map((item) => {
+        const imageSrc = getItemImage(item);
+        return (
+          <Card
+            key={item.id}
+            className="overflow-hidden bg-white/95 backdrop-blur-sm transition-[transform,box-shadow,border-color,background-color] duration-300 border border-red-600/25 hover:border-red-600 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)]"
+          >
+            <div className="relative aspect-[4/3] overflow-hidden bg-black">
+              {imageSrc ? (
+                <img
+                  src={optimizeImageUrl(imageSrc, 900)}
+                  alt={item.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-white text-xl font-sans font-semibold leading-tight">
+                    {item.name}
+                  </p>
+                  <p className="text-white/80 text-sm line-clamp-2">
+                    {item.description}
+                  </p>
+                </div>
+                <div className="bg-black/80 text-white px-3 py-2 rounded-full">
+                  <span className="font-sans font-bold tracking-tight">
+                    ${item.price.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <CardContent className="p-5">
+              <Button
+                onClick={() =>
+                  item.modifiers?.length ? handleOpenModal(item) : handleQuickAdd(item)
+                }
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 font-sans uppercase tracking-[0.14em] transition-[transform,box-shadow,background-color] duration-300 hover:shadow-[0_10px_30px_rgba(227,30,36,0.35)]"
+              >
+                {item.modifiers?.length ? 'Customize' : 'Add to Cart'}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  </div>
+)}
+
           <motion.div
             initial={{ width: 0 }}
             animate={inView ? { width: '100px' } : {}}
             transition={{ duration: 1, delay: 0.3 }}
             className="h-1 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 mx-auto mb-6"
-          ></motion.div>
-          
-          <h2
-            className="text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
-            style={{ fontFamily: 'Bebas Neue, sans-serif' }}
-          >
-            OUR MENU
+          />
+
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-display font-semibold text-white mb-4 leading-[0.95] tracking-[0.02em]">
+            Our Menu
           </h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+
+          <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
             Authentic West African dishes prepared with traditional recipes and the finest ingredients
           </p>
         </motion.div>
@@ -135,7 +261,7 @@ export const MenuShowcaseWithCart = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex flex-wrap justify-center gap-4 mb-12"
         >
-          {categories.map((category, index) => (
+          {CATEGORIES.map((category, index) => (
             <motion.button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
@@ -144,12 +270,11 @@ export const MenuShowcaseWithCart = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.1 * index }}
-              className={`px-8 py-4 font-bold transition-all duration-300 relative overflow-hidden ${
+              className={`px-5 sm:px-8 py-3 sm:py-4 font-bold transition-[transform,background-color,color,box-shadow] duration-300 relative overflow-hidden font-sans uppercase tracking-[0.10em] text-xs sm:text-sm md:text-base ${
                 selectedCategory === category.id
                   ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(227,30,36,0.5)]'
                   : 'bg-white text-black hover:bg-gray-100'
               }`}
-              style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}
             >
               {category.name}
               {selectedCategory === category.id && (
@@ -162,7 +287,7 @@ export const MenuShowcaseWithCart = () => {
           ))}
         </motion.div>
 
-        {/* Menu Items Grid */}
+        {/* Menu Grid */}
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedCategory}
@@ -172,7 +297,13 @@ export const MenuShowcaseWithCart = () => {
             transition={{ duration: 0.4 }}
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {currentItems.map((item, index) => (
+            {currentItems.length === 0 && menuItems.length > 0 && (
+              <div className="md:col-span-2 lg:col-span-3 rounded-xl border border-white/20 bg-white/5 p-6 text-center">
+                <p className="text-white/90 font-semibold">Category is empty. Showing all menu items instead.</p>
+                <p className="text-gray-400 text-sm mt-2">Your category labels in data may be mismatched.</p>
+              </div>
+            )}
+            {displayedItems.map((item, index) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -180,22 +311,31 @@ export const MenuShowcaseWithCart = () => {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
               >
-                <Card className="overflow-hidden bg-white hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-red-600 h-full flex flex-col">
-                  {item.image && (
-                    <div className="relative h-64 overflow-hidden">
+                <Card
+                  className={`h-full flex flex-col overflow-hidden bg-white/95 backdrop-blur-sm transition-[transform,box-shadow,border-color,background-color] duration-300 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)]
+                    ${
+                      item.popular
+                        ? 'border border-red-600/40 ring-1 ring-red-600/20'
+                        : 'border border-black/5'
+                    }
+                  `}
+                >
+                  {getItemImage(item) && (
+                    <div className="relative h-56 sm:h-64 overflow-hidden">
                       <img
-                        src={item.image}
+                        src={optimizeImageUrl(getItemImage(item), 900)}
                         alt={item.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-                      
-                      {/* Badges */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+
                       <div className="absolute top-4 right-4 flex flex-col gap-2">
                         {item.popular && (
-                          <Badge className="bg-red-600 text-white font-semibold px-3 py-1 shadow-lg">
+                          <Badge className="bg-red-600 text-white px-3 py-1 shadow-lg font-sans uppercase tracking-[0.10em] text-xs">
                             <Star className="w-3 h-3 mr-1 fill-white" />
-                            POPULAR
+                            Popular
                           </Badge>
                         )}
                         {item.spicy && (
@@ -205,45 +345,28 @@ export const MenuShowcaseWithCart = () => {
                         )}
                       </div>
 
-                      {/* Price Badge */}
                       <div className="absolute bottom-4 right-4 bg-black text-white px-4 py-2 rounded-full shadow-lg">
-                        <span className="text-xl font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                        <span className="text-xl font-sans font-bold tracking-tight">
                           ${item.price.toFixed(2)}
                         </span>
                       </div>
                     </div>
                   )}
-                  <CardContent className="p-6 flex-1 flex flex-col">
-                    <h3
-                      className="text-2xl font-bold text-black mb-2 leading-tight"
-                      style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}
-                    >
+
+                  <CardContent className="p-5 sm:p-6 flex flex-col flex-1">
+                    <h3 className="text-2xl font-sans font-semibold mb-2 tracking-tight text-black">
                       {item.name}
                     </h3>
-                    <p className="text-gray-700 leading-relaxed mb-4 flex-1">{item.description}</p>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      {item.modifiers && item.modifiers.length > 0 ? (
-                        <Button
-                          onClick={() => handleOpenModal(item)}
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 transition-all duration-300"
-                          style={{ fontFamily: 'Bebas Neue, sans-serif' }}
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Customize
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleQuickAdd(item)}
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 transition-all duration-300"
-                          style={{ fontFamily: 'Bebas Neue, sans-serif' }}
-                        >
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          Add to Cart
-                        </Button>
-                      )}
-                    </div>
+
+                    <p className="text-gray-700 mb-4 flex-1">{item.description}</p>
+
+                    <Button
+                      onClick={() => (item.modifiers?.length ? handleOpenModal(item) : handleQuickAdd(item))}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 font-sans uppercase tracking-[0.12em]"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      {item.modifiers?.length ? 'Customize' : 'Add to Cart'}
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -252,85 +375,62 @@ export const MenuShowcaseWithCart = () => {
         </AnimatePresence>
       </div>
 
-      {/* Modifier Selection Modal */}
+      {/* Modal */}
       <Dialog open={!!selectedItem} onOpenChange={handleCloseModal}>
-        <DialogContent className="bg-black border-4 border-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100%-1rem)] sm:w-full bg-black border border-white/20 max-w-2xl max-h-[90vh] overflow-y-auto">
           {selectedItem && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-3xl font-bold text-white mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                <DialogTitle className="text-3xl font-display font-semibold text-white tracking-[0.01em]">
                   {selectedItem.name}
                 </DialogTitle>
                 <p className="text-gray-400">{selectedItem.description}</p>
               </DialogHeader>
 
               <div className="space-y-6 mt-6">
-                {/* Modifiers */}
-                {selectedItem.modifiers && selectedItem.modifiers.length > 0 && (
+                {selectedItem.modifiers?.length > 0 && (
                   <div>
-                    <h4 className="text-xl font-bold text-white mb-4" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    <h4 className="text-sm font-sans font-semibold uppercase tracking-[0.12em] text-gray-200 mb-4">
                       Customize Your Order
                     </h4>
-                    <div className="space-y-3">
-                      {selectedItem.modifiers.map((modifier) => (
-                        <button
-                          key={modifier.id}
-                          onClick={() => toggleModifier(modifier)}
-                          className={`w-full p-4 rounded-lg border-2 transition-all duration-300 text-left ${
-                            selectedModifiers.find(m => m.id === modifier.id)
-                              ? 'border-red-600 bg-red-600 bg-opacity-20'
-                              : 'border-gray-700 hover:border-gray-500'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="text-white font-semibold">{modifier.name}</span>
-                            <span className="text-yellow-400 font-bold">
-                              {modifier.price > 0 ? `+$${modifier.price.toFixed(2)}` : 'Free'}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+
+                    {selectedItem.modifiers.map((modifier) => (
+                      <button
+                        key={modifier.id}
+                        onClick={() => toggleModifier(modifier)}
+                        className={`w-full p-4 mb-3 rounded-lg border text-left transition-[transform,background-color,color,border-color,box-shadow] duration-300 ${
+                          selectedModifiers.find((m) => m.id === modifier.id)
+                            ? 'border-red-600 bg-red-600/20'
+                            : 'border-gray-700 hover:border-gray-500'
+                        }`}
+                      >
+                        <div className="flex justify-between">
+                          <span className="text-white font-sans font-medium">{modifier.name}</span>
+                          <span className="text-yellow-400 font-sans font-bold">
+                            {modifier.price > 0 ? `+$${modifier.price.toFixed(2)}` : 'Free'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 )}
 
-                {/* Quantity */}
-                <div>
-                  <h4 className="text-xl font-bold text-white mb-4" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                    Quantity
-                  </h4>
-                  <div className="flex items-center gap-4 bg-gray-900 rounded-lg p-4 w-fit">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="text-white hover:text-red-600 transition-colors p-2"
-                    >
-                      <Minus className="w-6 h-6" />
-                    </button>
-                    <span className="text-white font-bold text-2xl min-w-[40px] text-center">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="text-white hover:text-green-600 transition-colors p-2"
-                    >
-                      <Plus className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Total & Add to Cart */}
-                <div className="pt-6 border-t-2 border-gray-800">
+                <div className="pt-6 border-t border-gray-800">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-gray-400 text-lg">Total:</span>
-                    <span className="text-white font-bold text-3xl" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    <span className="text-gray-400 text-sm font-sans uppercase tracking-[0.12em]">
+                      Total
+                    </span>
+                    <span className="text-white text-3xl font-sans font-bold tracking-tight">
                       ${calculateTotal().toFixed(2)}
                     </span>
                   </div>
+
                   <Button
                     onClick={handleAddToCart}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 text-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.6)]"
-                    style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 text-xl font-sans uppercase tracking-[0.12em]"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    ADD TO CART
+                    Add to Cart
                   </Button>
                 </div>
               </div>
@@ -338,6 +438,6 @@ export const MenuShowcaseWithCart = () => {
           )}
         </DialogContent>
       </Dialog>
-    </section>
+    </Section>
   );
 };

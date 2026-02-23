@@ -20,7 +20,7 @@ export const LocationAnimated = () => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <section id="location" className="py-20 bg-black relative overflow-hidden">
+    <section id="location" className="perf-section py-16 sm:py-20 bg-black relative overflow-hidden">
       {/* African Pattern Background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-repeat" style={{
@@ -34,7 +34,7 @@ export const LocationAnimated = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
           <motion.div
             initial={{ width: 0 }}
@@ -44,12 +44,12 @@ export const LocationAnimated = () => {
           ></motion.div>
           
           <h2
-            className="text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
             style={{ fontFamily: 'Bebas Neue, sans-serif' }}
           >
             VISIT US
           </h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
             Come experience authentic West African cuisine in Philadelphia
           </p>
         </motion.div>
@@ -62,14 +62,14 @@ export const LocationAnimated = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Card className="border-4 border-white bg-white h-full">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="flex items-start space-x-4 mb-6">
-                  <MapPin className="w-10 h-10 text-red-600 flex-shrink-0" />
+                  <MapPin className="w-8 h-8 sm:w-10 sm:h-10 text-red-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-3xl font-bold text-black mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-black mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                       LOCATION
                     </h3>
-                    <p className="text-lg text-gray-800 leading-relaxed font-semibold">
+                    <p className="text-base sm:text-lg text-gray-800 leading-relaxed font-semibold">
                       {restaurantInfo.address}<br />
                       {restaurantInfo.city}, {restaurantInfo.state} {restaurantInfo.zipCode}
                     </p>
@@ -100,14 +100,14 @@ export const LocationAnimated = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <Card className="border-4 border-white bg-white h-full">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="flex items-start space-x-4 mb-6">
-                  <Clock className="w-10 h-10 text-yellow-600 flex-shrink-0" />
+                  <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-3xl font-bold text-black mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-black mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                       HOURS
                     </h3>
-                    <p className="text-lg text-gray-700">Open every day of the week</p>
+                    <p className="text-base sm:text-lg text-gray-700">Open every day of the week</p>
                   </div>
                 </div>
 
@@ -118,19 +118,19 @@ export const LocationAnimated = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={inView ? { opacity: 1, x: 0 } : {}}
                       transition={{ delay: 0.5 + index * 0.05 }}
-                      className="flex justify-between items-center py-3 border-b-2 border-gray-200"
+                      className="flex justify-between items-center gap-3 py-3 border-b-2 border-gray-200"
                     >
-                      <span className="font-bold text-gray-900 text-lg" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                      <span className="font-bold text-gray-900 text-base sm:text-lg" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
                         {day}
                       </span>
-                      <span className="text-gray-700 font-semibold">{formatHours(day)}</span>
+                      <span className="text-gray-700 font-semibold text-sm sm:text-base text-right">{formatHours(day)}</span>
                     </motion.div>
                   ))}
                 </div>
 
                 {/* Special Note */}
                 <div className="mt-6 p-4 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 rounded-lg">
-                  <p className="text-sm text-white text-center font-semibold">
+                  <p className="text-xs sm:text-sm text-white text-center font-semibold">
                     Hours may vary on holidays. Please call ahead to confirm.
                   </p>
                 </div>

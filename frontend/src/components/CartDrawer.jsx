@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 export const CartDrawer = ({ isOpen, onClose }) => {
-  const { cart, removeFromCart, updateQuantity, getCartTotal, getCartCount, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, clearCart } = useCart();
   const navigate = useNavigate();
 
   const handleCheckout = () => {
@@ -34,10 +34,10 @@ export const CartDrawer = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-black border-l-4 border-white z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-black border-l-2 sm:border-l-4 border-white z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b-2 border-gray-800">
+            <div className="p-4 sm:p-6 border-b-2 border-gray-800">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <ShoppingCart className="w-6 h-6 text-red-600" />
@@ -53,12 +53,12 @@ export const CartDrawer = ({ isOpen, onClose }) => {
                 </button>
               </div>
               <p className="text-gray-400 text-sm">
-                {getCartCount()} {getCartCount() === 1 ? 'item' : 'items'}
+                {cartCount} {cartCount === 1 ? 'item' : 'items'}
               </p>
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
                   <ShoppingCart className="w-16 h-16 mx-auto text-gray-600 mb-4" />
@@ -134,11 +134,11 @@ export const CartDrawer = ({ isOpen, onClose }) => {
 
             {/* Footer with Total and Checkout */}
             {cart.length > 0 && (
-              <div className="border-t-2 border-gray-800 p-6 space-y-4">
+              <div className="border-t-2 border-gray-800 p-4 sm:p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 text-lg">Subtotal:</span>
                   <span className="text-white font-bold text-2xl" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                    ${getCartTotal().toFixed(2)}
+                    ${cartTotal.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-gray-500 text-xs text-center">
@@ -146,7 +146,7 @@ export const CartDrawer = ({ isOpen, onClose }) => {
                 </p>
                 <Button
                   onClick={handleCheckout}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 text-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.6)]"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 sm:py-6 text-lg sm:text-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.6)]"
                   style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
                 >
                   PROCEED TO CHECKOUT

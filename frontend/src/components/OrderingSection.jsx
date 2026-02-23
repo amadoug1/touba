@@ -31,7 +31,11 @@ export const OrderingSection = () => {
           >
             <CardContent className="p-8 text-center space-y-6">
               <div className="bg-white rounded-lg p-6 inline-block">
-                <div className="text-6xl font-bold text-red-600">DD</div>
+                <img
+                  src="/images/DoorDashLogo.svg"
+                  alt="DoorDash"
+                  className="h-14 w-auto object-contain mx-auto"
+                />
               </div>
               <h3 className="text-2xl font-bold text-black" style={{ fontFamily: "'Crimson Text', serif" }}>
                 DoorDash
@@ -58,7 +62,11 @@ export const OrderingSection = () => {
           >
             <CardContent className="p-8 text-center space-y-6">
               <div className="bg-white rounded-lg p-6 inline-block">
-                <div className="text-6xl font-bold text-black">UE</div>
+                <img
+                  src="/images/UberEatsLogo.png"
+                  alt="Uber Eats"
+                  className="h-14 w-auto object-contain mx-auto"
+                />
               </div>
               <h3 className="text-2xl font-bold text-black" style={{ fontFamily: "'Crimson Text', serif" }}>
                 Uber Eats

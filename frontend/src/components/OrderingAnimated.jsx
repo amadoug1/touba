@@ -13,7 +13,7 @@ export const OrderingAnimated = () => {
   });
 
   return (
-    <section id="order" className="py-20 bg-white relative overflow-hidden">
+    <section id="order" className="perf-section py-16 sm:py-20 bg-white relative overflow-hidden">
       {/* African Pattern Background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-repeat" style={{
@@ -27,7 +27,7 @@ export const OrderingAnimated = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
           <motion.div
             initial={{ width: 0 }}
@@ -37,18 +37,18 @@ export const OrderingAnimated = () => {
           ></motion.div>
           
           <h2
-            className="text-5xl md:text-7xl font-bold text-black mb-4 leading-none"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-black mb-4 leading-none"
             style={{ fontFamily: 'Bebas Neue, sans-serif' }}
           >
             ORDER ONLINE
           </h2>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto">
             Enjoy authentic African cuisine delivered right to your door
           </p>
         </motion.div>
 
         {/* Ordering Options */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12">
           {/* DoorDash Card */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -56,22 +56,26 @@ export const OrderingAnimated = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             whileHover={{ scale: 1.02, y: -4 }}
           >
-            <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-4 border-black h-full">
-              <CardContent className="p-8 text-center space-y-6 bg-gradient-to-br from-white to-gray-50">
-                <div className="bg-red-600 rounded-lg p-6 inline-block">
-                  <div className="text-7xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                    DD
-                  </div>
+            <Card className="overflow-hidden hover:shadow-2xl transition-[transform,box-shadow,border-color,background-color] duration-300 border-4 border-black h-full">
+              <CardContent className="p-6 sm:p-8 text-center space-y-6 bg-gradient-to-br from-white to-gray-50">
+                <div className="bg-black rounded-xl w-28 h-20 flex items-center justify-center mx-auto">
+                   <img
+                    src="/images/DoorDashLogo.svg"
+                    alt="DoorDash"
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-12 max-w-[90px] object-contain"
+                  />
                 </div>
-                <h3 className="text-3xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                <h3 className="text-2xl sm:text-3xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                   DOORDASH
                 </h3>
-                <p className="text-gray-700 text-lg">
+                <p className="text-gray-700 text-base sm:text-lg">
                   Fast and reliable delivery. Track your order in real-time.
                 </p>
                 <Button
                   asChild
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 text-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.5)]"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 sm:py-6 text-base sm:text-lg transition-[transform,box-shadow,background-color] duration-300 hover:shadow-[0_0_20px_rgba(227,30,36,0.5)]"
                   style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
                 >
                   <a href={restaurantInfo.orderingPlatforms.doordash} target="_blank" rel="noopener noreferrer">
@@ -90,22 +94,27 @@ export const OrderingAnimated = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             whileHover={{ scale: 1.02, y: -4 }}
           >
-            <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-4 border-black h-full">
-              <CardContent className="p-8 text-center space-y-6 bg-gradient-to-br from-white to-gray-50">
-                <div className="bg-black rounded-lg p-6 inline-block">
-                  <div className="text-7xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                    UE
-                  </div>
+            <Card className="overflow-hidden hover:shadow-2xl transition-[transform,box-shadow,border-color,background-color] duration-300 border-4 border-black h-full">
+              <CardContent className="p-6 sm:p-8 text-center space-y-6 bg-gradient-to-br from-white to-gray-50">
+                <div className="bg-black rounded-xl w-28 h-20 flex items-center justify-center mx-auto">
+                  <img
+                    src="/images/UberEatsLogo.png"
+                    alt="Uber Eats"
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-12 max-w-[100px] object-contain"
+                  />
                 </div>
-                <h3 className="text-3xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+
+                <h3 className="text-2xl sm:text-3xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                   UBER EATS
                 </h3>
-                <p className="text-gray-700 text-lg">
+                <p className="text-gray-700 text-base sm:text-lg">
                   Convenient delivery. Get your food fresh and hot.
                 </p>
                 <Button
                   asChild
-                  className="w-full bg-black hover:bg-gray-800 text-white font-bold py-6 text-lg transition-all duration-300 hover:shadow-lg"
+                  className="w-full bg-black hover:bg-gray-800 text-white font-bold py-5 sm:py-6 text-base sm:text-lg transition-[transform,box-shadow,background-color] duration-300 hover:shadow-lg"
                   style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
                 >
                   <a href={restaurantInfo.orderingPlatforms.ubereats} target="_blank" rel="noopener noreferrer">
@@ -126,18 +135,18 @@ export const OrderingAnimated = () => {
           className="max-w-2xl mx-auto"
         >
           <Card className="border-4 border-black overflow-hidden">
-            <CardContent className="p-8 text-center space-y-4 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600">
-              <Phone className="w-16 h-16 mx-auto text-white" />
-              <h3 className="text-3xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+            <CardContent className="p-6 sm:p-8 text-center space-y-4 bg-gradient-to-r from-green-600 via-yellow-400 to-red-600">
+              <Phone className="w-14 h-14 sm:w-16 sm:h-16 mx-auto text-white" />
+              <h3 className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                 PREFER TO CALL?
               </h3>
-              <p className="text-lg text-white font-semibold">
+              <p className="text-base sm:text-lg text-white font-semibold">
                 Call us for phone orders, catering, or special requests
               </p>
               <Button
                 asChild
                 variant="outline"
-                className="border-4 border-white text-white hover:bg-white hover:text-black font-bold px-8 py-6 text-2xl transition-all duration-300"
+                className="border-4 border-white text-white hover:bg-white hover:text-black font-bold px-6 sm:px-8 py-5 sm:py-6 text-xl sm:text-2xl transition-[transform,background-color,color,border-color] duration-300"
                 style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}
                 size="lg"
               >

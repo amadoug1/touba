@@ -43,7 +43,7 @@ export const ContactAnimated = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-white relative overflow-hidden">
+    <section id="contact" className="perf-section py-16 sm:py-20 bg-white relative overflow-hidden">
       {/* African Pattern Background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-repeat" style={{
@@ -57,7 +57,7 @@ export const ContactAnimated = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
           <motion.div
             initial={{ width: 0 }}
@@ -67,17 +67,17 @@ export const ContactAnimated = () => {
           ></motion.div>
           
           <h2
-            className="text-5xl md:text-7xl font-bold text-black mb-4 leading-none"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-black mb-4 leading-none"
             style={{ fontFamily: 'Bebas Neue, sans-serif' }}
           >
             GET IN TOUCH
           </h2>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto">
             Questions, catering inquiries, or special requests? We'd love to hear from you!
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 mb-12">
           {/* Contact Cards */}
           {[
             { icon: Phone, title: 'CALL US', content: restaurantInfo.phone, href: `tel:${restaurantInfo.phone}`, color: 'red' },
@@ -99,23 +99,23 @@ export const ContactAnimated = () => {
                 transition={{ delay: 0.2 + index * 0.1 }}
                 whileHover={{ y: -4 }}
               >
-                <Card className="border-4 border-black hover:shadow-2xl transition-all duration-300 h-full">
-                  <CardContent className="p-8 text-center space-y-4">
+                <Card className="border-4 border-black hover:shadow-2xl transition-[transform,box-shadow,border-color,background-color] duration-300 h-full">
+                  <CardContent className="p-6 sm:p-8 text-center space-y-4">
                     <div className={`w-16 h-16 ${colorClasses[item.color]} rounded-full flex items-center justify-center mx-auto`}>
                       <Icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                    <h3 className="text-xl sm:text-2xl font-bold text-black" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
                       {item.title}
                     </h3>
                     {item.href ? (
                       <a
                         href={item.href}
-                        className="text-lg text-gray-800 hover:text-red-600 font-semibold transition-colors block break-words"
+                        className="text-base sm:text-lg text-gray-800 hover:text-red-600 font-semibold transition-colors block break-words"
                       >
                         {item.content}
                       </a>
                     ) : (
-                      <p className="text-lg text-gray-800 font-semibold">{item.content}</p>
+                      <p className="text-base sm:text-lg text-gray-800 font-semibold">{item.content}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -132,15 +132,15 @@ export const ContactAnimated = () => {
           className="max-w-3xl mx-auto"
         >
           <Card className="border-4 border-black bg-white">
-            <CardContent className="p-8">
+            <CardContent className="p-6 sm:p-8">
               <h3
-                className="text-4xl font-bold text-black mb-8 text-center"
+                className="text-3xl sm:text-4xl font-bold text-black mb-8 text-center"
                 style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}
               >
                 SEND US A MESSAGE
               </h3>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-bold text-gray-900 mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
                       YOUR NAME *
@@ -203,7 +203,7 @@ export const ContactAnimated = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 hover:opacity-90 text-white font-bold py-6 text-lg transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-green-600 via-yellow-400 to-red-600 hover:opacity-90 text-white font-bold py-5 sm:py-6 text-base sm:text-lg transition-[transform,opacity,box-shadow] duration-300"
                   style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}
                 >
                   <Send className="mr-2 w-5 h-5" />
